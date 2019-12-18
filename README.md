@@ -33,7 +33,7 @@ systemctl enable mariadb
 ssh-keygen -f /root/.ssh/id_rsa -N ''
 for i in {1..10}
 do
-ssh-copy-id 192.168.4.$i
+  ssh-copy-id 192.168.4.$i
 done
 
 5.随机生成8位密码
@@ -41,10 +41,25 @@ done
 a=abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789  #定义变量a为52个大小写字母和0-9数字
 for i in {1..8}    
 do
-x=$[RANDOM%62]     #定义变量x取值从62%62起始位开始
-p=${a:x:1}         #从定义的变量a中的x位置截取一位
-pa=$pa$p           #将每次循环截取的取值组合在一起
+  x=$[RANDOM%62]     #定义变量x取值从62%62起始位开始
+  p=${a:x:1}         #从定义的变量a中的x位置截取一位
+  pa=$pa$p           #将每次循环截取的取值组合在一起
 done
 echo $pa           #输出随机截取的8位密码
 
-
+6.批量修改扩展名
+#!/bin/bash
+for i in `ls*.txt`
+do
+  x=${i%.*}       #截取没有文件扩展名的文件名
+  mv $i $x.doc    #改名时将这个文件名与.doc组合
+done
+7.vim k.sh批量将.doc修改回.txt
+#!/bin/bash
+for i in `ls *.$1`
+do
+  x=${i%.$1}
+  mv $i $x.$2
+done
+chmod +x k.sh
+bash k.sh doc txt
