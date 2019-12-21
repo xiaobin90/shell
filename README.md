@@ -63,3 +63,82 @@ do
 done
 chmod +x k.sh
 bash k.sh doc txt
+
+7.一键部署zabbix监控
+#!/bin/bash
+#一键部署服务器端zabbix监控软件
+#需要提前配置好yum源,将zabbix,nginx压缩包拷贝至/root/下
+#
+#
+#
+#第一步,在监控服务器上部署搭建lnmp架构
+yum -y install gcc pcre-devel openssl-devel zlib-devel
+tar -xzvf nginx-1.12.2.tar.gz
+cd nginx-1.12.2/
+./configure --with-http_ssl_module
+make&&make install
+yum -y install php php-mysql php-fpm mariadb mariadb-server mariadb-devel
+sed -i '65,68s/#//' /usr/local/nginx/conf/nginx.conf
+sed -i '70,71s/#//' /usr/local/nginx/conf/nginx.conf
+sed -i '70s/fastcgi_params;/fastcgi.conf;/' /usr/local/nginx/conf/nginx.conf
+systemctl start mariadb
+systemctl php-fpm
+/usr/local/nginx/sbin/nginx
+echo '<?php  $i="hello world!!"; echo $i; ?>' > /usr/local/nginx/html/test.php
+curl http://192.168.2.17/test.php
+#
+#
+#
+#第二部安装zabbix软件
+#安装zabbix软件
+yum -y install net-snmp-devel curl-devel libevent-devel  #安装软件依赖包
+cd
+tar -xf zabbix-3.4.4.tar.gz  #解压zabbix压缩包
+cd /root/zabbix-3.4.4/   #安装所需模块
+./configure --enable-server --enable-proxy --enable-agent --with-mysql=/usr/bin/mysql_config --with-net-snmp --with-libcurl
+make install #编译安装
+#
+#
+#
+#第三部设置数据库
+mysqladmin -uroot password 'zabbix'
+mysql -uroot -pzabbix -e "create database zabbix character set utf8;"
+mysql -uroot -pzabbix -e "grant all on zabbix.* to zabbix@'localhost' identified by 'zabbix';"
+mysql -uzabbix -pzabbix zabbix < /root/zabbix-3.4.4/database/mysql/schema.sql
+mysql -uzabbix -pzabbix zabbix < /root/zabbix-3.4.4/database/mysql/images.sql
+mysql -uzabbix -pzabbix zabbix < /root/zabbix-3.4.4/database/mysql/data.sql
+cd /root/zabbix-3.4.4/frontends/php/
+cp -a * /usr/local/nginx/html/
+chmod -R 777 /usr/local/nginx/html/*
+sed -i '17s/http {/http { \t\n/' /usr/local/nginx/conf/nginx.conf
+sed -i '18s/^$/\t\nfastcgi_buffers 8 16k;\n\tfastcgi_buffer_size 32k;\n\tfastcgi_connect_timeout 300;\n\tfastcgi_send_timeout 300;\n\tfastcgi_read_timeout 300;\n/'  /usr/local/nginx/conf/nginx.conf  #修改nginx配置文件,以满足zabbix运行参数
+/usr/local/nginx/sbin/nginx -s stop #停止nginx加载新添配置
+/usr/local/nginx/sbin/nginx
+#
+#
+#
+#第四部安装php依赖软件
+cd /root/
+yum -y install php-gd php-xml php-ldap
+yum -y install php-bcmath php-mbstring
+sed -i '878s/;date.timezone = */date.timezone = Asia Shanghai/' /etc/php.ini
+sed -i '384s/max_execution_time = 30/max_execution_time = 300/' /etc/php.ini
+sed -i '672s/post_max_size = 8M/post_max_size = 32M/' /etc/php.ini
+sed -i '394s/max_input_time = 60/max_input_time = 300/' /etc/php.ini
+systemctl restart php-fpm
+#
+#
+#
+#测试
+echo "测试lnmp"
+curl http://192.168.2.17/test.php
+#查看zabbix目录
+echo "查看zabbix目录文件"
+ls /usr/local/etc
+ls /usr/local/bin
+ls /usr/local/sbin
+
+
+
+~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
+~                                       
