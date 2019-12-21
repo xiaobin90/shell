@@ -27,19 +27,22 @@ systemctl enable httpd
 systemctl enable mariadb
 
 4.源码一键部署LNMP
-#! /bin/bash
-# 一键部署安装多台lnmp
-#在一台服务器上生成秘钥,做无密码认证
-ssh-keygen -f /root/.ssh/id_rsa -N ''
-for i in {1..10}
-do
-  ssh-copy-id 192.168.4.$i
-done
+#!/bin/bash
+#需要提前配置好yum源,将nginx压缩包拷贝至/root/下
 yum -y install gcc pcre-devel openssl-devel zlib-devel
 tar -xzvf nginx-1.12.2.tar.gz
 cd nginx-1.12.2/
 ./configure --with-http_ssl_module
 make&&make install
+yum -y install php php-mysql php-fpm mariadb mariadb-server mariadb-devel
+sed -i '65,68s/#//' /usr/local/nginx/conf/nginx.conf
+sed -i '70,71s/#//' /usr/local/nginx/conf/nginx.conf
+sed -i '70s/fastcgi_params;/fastcgi.conf;/' /usr/local/nginx/conf/nginx.conf
+systemctl start mariadb
+systemctl php-fpm
+/usr/local/nginx/sbin/nginx
+echo '<?php  $i="hello world!!"; echo $i; ?>' > /usr/local/nginx/html/test.php
+curl http://$1/test.php
 
 5.随机生成8位密码
 #! /bin/bash
