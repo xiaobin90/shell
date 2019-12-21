@@ -35,6 +35,11 @@ for i in {1..10}
 do
   ssh-copy-id 192.168.4.$i
 done
+yum -y install gcc pcre-devel openssl-devel zlib-devel
+tar -xzvf nginx-1.12.2.tar.gz
+cd nginx-1.12.2/
+./configure --with-http_ssl_module
+make&&make install
 
 5.随机生成8位密码
 #! /bin/bash
@@ -131,7 +136,7 @@ systemctl restart php-fpm
 #
 #测试
 echo "测试lnmp"
-curl http://192.168.2.17/test.php
+echo `curl http://192.168.2.17/test.php`
 #查看zabbix目录
 echo "查看zabbix目录文件"
 ls /usr/local/etc
