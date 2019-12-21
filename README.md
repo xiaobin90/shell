@@ -90,7 +90,7 @@ systemctl start mariadb
 systemctl php-fpm
 /usr/local/nginx/sbin/nginx
 echo '<?php  $i="hello world!!"; echo $i; ?>' > /usr/local/nginx/html/test.php
-curl http://192.168.2.17/test.php
+curl http://$1/test.php
 #
 #
 #
@@ -136,14 +136,14 @@ systemctl restart php-fpm
 #
 #测试
 echo "测试lnmp"
-echo `curl http://192.168.2.17/test.php`
+echo `curl http://$1/test.php`
 #查看zabbix目录
 echo "查看zabbix目录文件"
 ls /usr/local/etc
 ls /usr/local/bin
 ls /usr/local/sbin
 
-
+firefox http://$1/index.php
 
 ~                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           
 ~                                       
